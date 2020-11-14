@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Window/Window.h"
+#include "Engine/Graphics/Graphics.h"
 
 class AppWindow : public Window
 {
