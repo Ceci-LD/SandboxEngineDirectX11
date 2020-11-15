@@ -1,4 +1,5 @@
 #include "Graphics.h"
+#include "SwapChain/SwapChain.h"
 
 Graphics::Graphics()
 {
@@ -28,8 +29,10 @@ bool Graphics::Init()
 	for (UINT i = 0; i < driverTypesCount;)
 	{
 		result = D3D11CreateDevice(NULL, driverTypes[i],
-			NULL, NULL, 
-			featureLevels, featureLevelsCount,
+			NULL, 
+			D3D11_CREATE_DEVICE_DEBUG,
+			featureLevels,
+			featureLevelsCount,
 			D3D11_SDK_VERSION,
 			&m_Device,
 			&m_FeatureLevel,
@@ -46,14 +49,29 @@ bool Graphics::Init()
 		return false;
 	}
 
+	//Create Swap Chain
+	m_Device->QueryInterface(__uuidof(IDXGIDevice), (void**)&m_DXGIDevice);
+	m_DXGIDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&m_DXGIAdapter);
+	m_DXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&m_DXGIFactory);
+
 	return true;
 }
 
 bool Graphics::Release()
 {
+	m_DXGIDevice->Release();
+	m_DXGIAdapter->Release();
+	m_DXGIFactory->Release();
+
 	m_Context->Release();
 	m_Device->Release();
 	return true;
+}
+
+SwapChain* Graphics::CreateSwapChain()
+{
+	//Deleted in SwapChain::Release()
+	return new SwapChain();
 }
 
 Graphics* Graphics::Get()

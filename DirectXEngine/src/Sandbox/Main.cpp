@@ -1,15 +1,9 @@
-#include "AppWindow.h"
+#include "SandboxApp.h"
 
-int main()
+int main(int argv, int** argc)
 {
-	AppWindow* app = new AppWindow();
-	if (app->Init())
-	{
-		while (app->IsRunning())
-		{
-			app->PollEvents();
-		}
-	}
-
+	Application* app = new SandboxApp();
+	app->Run();
+	delete app;
 	return 0;
 }

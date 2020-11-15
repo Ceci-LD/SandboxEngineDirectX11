@@ -1,41 +1,36 @@
 #pragma once
-
 #include <Windows.h>
+#include <memory>
+#include <string>
+#include <optional>
 
-//Helper class
 struct WindowProps
 {
 	const char* Title;
-	unsigned int Width, Height;
-	WindowProps(const char* title = "DirectX Sandbox",
+	unsigned int Width;
+	unsigned int Height;
+	WindowProps(const char* title = "asd",
 		unsigned int width = 1280,
 		unsigned int height = 720)
 		: Title(title), Width(width), Height(height)
 	{}
 };
 
-//Low level Window class
 class Window
 {
 public:
 	Window(WindowProps props);
 	~Window();
 
-	bool Init();
-	bool Release();
-	void PollEvents();
+	inline const HWND& GetHandle() const { return m_Hwnd; }
 
-	inline const bool IsRunning() const { return m_IsRunning; }
-	inline void SetRunning(bool enable) { m_IsRunning = enable; }
+	inline const unsigned int GetWidth() const { return m_Props.Width; }
+	inline const unsigned int GetHeight() const { return m_Props.Height; }
 
-	//Events
-	virtual void OnCreate() = 0;
-	virtual void OnUpdate() = 0;
-	virtual void OnDestroy() = 0;
+	std::optional<int> ProcessMessages();
 
 private:
-	HWND m_Hwnd;
-	bool m_IsRunning = false;
-
 	WindowProps m_Props;
+
+	HWND m_Hwnd;
 };
