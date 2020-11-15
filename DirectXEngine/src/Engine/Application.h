@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Window/Window.h"
-#include "Graphics/Graphics.h"
-#include "Graphics/SwapChain/SwapChain.h"
 
 class Application
 {
@@ -19,7 +17,6 @@ public:
 
 private:
 	std::unique_ptr<Window> m_Window;
-	SwapChain* m_SwapChain;
 
 private:
 	static Application* s_Instance;

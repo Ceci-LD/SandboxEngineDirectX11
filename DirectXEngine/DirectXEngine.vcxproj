@@ -160,6 +160,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\Engine\Application.cpp" />
+    <ClCompile Include="src\Engine\Graphics\DeviceContext\DeviceContext.cpp" />
     <ClCompile Include="src\Engine\Graphics\Graphics.cpp" />
     <ClCompile Include="src\Engine\Graphics\SwapChain\SwapChain.cpp" />
     <ClCompile Include="src\Engine\Window\Window.cpp" />
@@ -167,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine\Application.h" />
+    <ClInclude Include="src\Engine\Graphics\DeviceContext\DeviceContext.h" />
     <ClInclude Include="src\Engine\Graphics\Graphics.h" />
     <ClInclude Include="src\Engine\Graphics\SwapChain\SwapChain.h" />
     <ClInclude Include="src\Engine\Window\Window.h" />
