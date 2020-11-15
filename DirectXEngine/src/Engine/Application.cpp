@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <iostream>
+
 Application* Application::s_Instance = nullptr;
 
 Application::Application(WindowProps props)
@@ -28,6 +30,11 @@ void Application::Run()
 
 void Application::Update(float dt)
 {
+	if (m_Window->GetKeyboard().KeyIsPressed('A'))
+		std::cout << "A\n";
+
+	std::pair<int, int> pos = m_Window->GetMouse().GetPos();
+	std::cout << pos.first << ", " << pos.second << std::endl;
 }
 
 void Application::Render()
