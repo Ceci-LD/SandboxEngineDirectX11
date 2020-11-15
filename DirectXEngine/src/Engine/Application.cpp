@@ -23,18 +23,14 @@ void Application::Run()
 			return;
 		}
 
-		Update(0.0f);
-		Render();
+		m_Window->Gfx().ClearBuffer(0.2f, 0.2f, 0.2f);
+		m_Window->Gfx().DrawTriangle();
+		m_Window->Gfx().EndFrame();
 	}
 }
 
 void Application::Update(float dt)
 {
-	if (m_Window->GetKeyboard().KeyIsPressed('A'))
-		std::cout << "A\n";
-
-	std::pair<int, int> pos = m_Window->GetMouse().GetPos();
-	std::cout << pos.first << ", " << pos.second << std::endl;
 }
 
 void Application::Render()

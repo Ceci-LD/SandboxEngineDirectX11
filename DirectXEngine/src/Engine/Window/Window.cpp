@@ -1,5 +1,10 @@
 #include "Window.h"
 
+Graphics& Window::Gfx()
+{
+	return *m_Graphics;
+}
+
 LRESULT CALLBACK Window::HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	// use create parameter passed in from CreateWindow() to store window class pointer at WinAPI side
@@ -38,24 +43,24 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 		// clear keystate when window loses focus to prevent input getting "stuck"
 	case WM_KILLFOCUS:
-		keyboard.ClearState();
+		m_Keyboard.ClearState();
 		break;
 
 		/*********** KEYBOARD MESSAGES ***********/
 		case WM_KEYDOWN:
 			// syskey commands need to be handled to track ALT key (VK_MENU) and F10
 		case WM_SYSKEYDOWN:
-			if (!(lParam & 0x40000000) || keyboard.AutorepeatIsEnabled()) // filter autorepeat
+			if (!(lParam & 0x40000000) || m_Keyboard.AutorepeatIsEnabled()) // filter autorepeat
 			{
-				keyboard.OnKeyPressed(static_cast<unsigned char>(wParam));
+				m_Keyboard.OnKeyPressed(static_cast<unsigned char>(wParam));
 			}
 			break;
 		case WM_KEYUP:
 		case WM_SYSKEYUP:
-			keyboard.OnKeyReleased(static_cast<unsigned char>(wParam));
+			m_Keyboard.OnKeyReleased(static_cast<unsigned char>(wParam));
 			break;
 		case WM_CHAR:
-			keyboard.OnChar(static_cast<unsigned char>(wParam));
+			m_Keyboard.OnChar(static_cast<unsigned char>(wParam));
 			break;
 		/*********** END KEYBOARD MESSAGES ***********/
 
@@ -64,13 +69,13 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
 			// in client region -> log move, and log enter + capture mouse (if not previously in window)
-			if (pt.x >= 0 && pt.x < m_Props.Width && pt.y >= 0 && pt.y < m_Props.Height)
+			if (pt.x >= 0 && pt.x < (SHORT)m_Props.Width && pt.y >= 0 && pt.y < (SHORT)m_Props.Height)
 			{
-				mouse.OnMouseMove(pt.x, pt.y);
-				if (!mouse.IsInWindow())
+				m_Mouse.OnMouseMove(pt.x, pt.y);
+				if (!m_Mouse.IsInWindow())
 				{
 					SetCapture(hWnd);
-					mouse.OnMouseEnter();
+					m_Mouse.OnMouseEnter();
 				}
 			}
 			// not in client -> log move / maintain capture if button down
@@ -78,13 +83,13 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			{
 				if (wParam & (MK_LBUTTON | MK_RBUTTON))
 				{
-					mouse.OnMouseMove(pt.x, pt.y);
+					m_Mouse.OnMouseMove(pt.x, pt.y);
 				}
 				// button up -> release capture / log event for leaving
 				else
 				{
 					ReleaseCapture();
-					mouse.OnMouseLeave();
+					m_Mouse.OnMouseLeave();
 				}
 			}
 			break;
@@ -92,36 +97,36 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		case WM_LBUTTONDOWN:
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnLeftPressed(pt.x, pt.y);
+			m_Mouse.OnLeftPressed(pt.x, pt.y);
 			break;
 		}
 		case WM_RBUTTONDOWN:
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnRightPressed(pt.x, pt.y);
+			m_Mouse.OnRightPressed(pt.x, pt.y);
 			break;
 		}
 		case WM_LBUTTONUP:
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnLeftReleased(pt.x, pt.y);
+			m_Mouse.OnLeftReleased(pt.x, pt.y);
 			// release mouse if outside of window
-			if (pt.x < 0 || pt.x >= m_Props.Width || pt.y < 0 || pt.y >= m_Props.Height)
+			if (pt.x < 0 || pt.x >= (SHORT)m_Props.Width || pt.y < 0 || pt.y >= (SHORT)m_Props.Height)
 			{
 				ReleaseCapture();
-				mouse.OnMouseLeave();
+				m_Mouse.OnMouseLeave();
 			}
 			break;
 		}
 		case WM_RBUTTONUP:
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
-			mouse.OnRightReleased(pt.x, pt.y);
+			m_Mouse.OnRightReleased(pt.x, pt.y);
 			// release mouse if outside of window
-			if (pt.x < 0 || pt.x >= m_Props.Width || pt.y < 0 || pt.y >= m_Props.Height)
+			if (pt.x < 0 || pt.x >= (SHORT)m_Props.Width || pt.y < 0 || pt.y >= (SHORT)m_Props.Height)
 			{
 				ReleaseCapture();
-				mouse.OnMouseLeave();
+				m_Mouse.OnMouseLeave();
 			}
 			break;
 		}
@@ -129,7 +134,7 @@ LRESULT Window::HandleMsg(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		{
 			const POINTS pt = MAKEPOINTS(lParam);
 			const int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-			mouse.OnWheelDelta(pt.x, pt.y, delta);
+			m_Mouse.OnWheelDelta(pt.x, pt.y, delta);
 			break;
 		}
 		/************** END MOUSE MESSAGES **************/
@@ -180,6 +185,8 @@ Window::Window(WindowProps props)
 	//Show and Update window
 	ShowWindow(m_Hwnd, SW_SHOWDEFAULT);
 	UpdateWindow(m_Hwnd);
+
+	m_Graphics = std::make_unique<Graphics>(m_Hwnd);
 }
 
 std::optional<int> Window::ProcessMessages()

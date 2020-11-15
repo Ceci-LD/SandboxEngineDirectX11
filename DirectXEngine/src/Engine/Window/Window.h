@@ -7,6 +7,8 @@
 #include "Keyboard/Keyboard.h"
 #include "Mouse/Mouse.h"
 
+#include "Engine/GraphicsEngine/Graphics.h"
+
 struct WindowProps
 {
 	const char* Title;
@@ -34,8 +36,9 @@ public:
 
 	std::optional<int> ProcessMessages();
 
-	const Keyboard& GetKeyboard() { return keyboard; }
-	const Mouse& GetMouse() { return mouse; }
+	const Keyboard& GetKeyboard() { return m_Keyboard; }
+	const Mouse& GetMouse() { return m_Mouse; }
+	Graphics& Gfx();
 
 private:
 	static LRESULT CALLBACK HandleMsgSetup(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -46,6 +49,7 @@ private:
 	WindowProps m_Props;
 
 	HWND m_Hwnd;
-	Keyboard keyboard;
-	Mouse mouse;
+	Keyboard m_Keyboard;
+	Mouse m_Mouse;
+	std::unique_ptr<Graphics> m_Graphics;
 };
