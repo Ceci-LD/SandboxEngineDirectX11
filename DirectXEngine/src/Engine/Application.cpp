@@ -24,7 +24,10 @@ void Application::Run()
 		}
 
 		m_Window->Gfx().ClearBuffer(0.2f, 0.2f, 0.2f);
-		m_Window->Gfx().DrawTriangle();
+		m_Window->Gfx().DrawTriangle(0.0f,
+			m_Window->GetMouse().GetPosX() / 640.0f - 1.0f,
+			-m_Window->GetMouse().GetPosY() / 360.0f + 1.0f
+		); 
 		m_Window->Gfx().EndFrame();
 	}
 }
