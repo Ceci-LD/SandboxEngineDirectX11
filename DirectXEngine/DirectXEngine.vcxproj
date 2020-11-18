@@ -168,7 +168,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Engine\Application.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\Buffers\IndexBuffer.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\Buffers\VertexBuffer.h" />
     <ClInclude Include="src\Engine\GraphicsEngine\Graphics.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\InputLayout.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\Shaders\PixelShader.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\Shaders\VertexShader.h" />
+    <ClInclude Include="src\Engine\GraphicsEngine\Topology.h" />
     <ClInclude Include="src\Engine\Window\Keyboard\Keyboard.h" />
     <ClInclude Include="src\Engine\Window\Mouse\Mouse.h" />
     <ClInclude Include="src\Engine\Window\Window.h" />

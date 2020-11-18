@@ -17,6 +17,9 @@ public:
 
 	void DrawTriangle(float angle, float x, float y);
 
+	inline ID3D11Device* GetDevice() { return pDevice.Get(); }
+	inline ID3D11DeviceContext* GetContext() { return pContext.Get(); }
+
 private:
 	Microsoft::WRL::ComPtr<ID3D11Device> pDevice;
 	Microsoft::WRL::ComPtr<IDXGISwapChain> pSwap;

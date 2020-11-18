@@ -3,6 +3,13 @@
 #include <d3dcompiler.h>
 #include <DirectXMath.h>
 
+#include "Buffers/VertexBuffer.h"
+#include "Buffers/IndexBuffer.h"
+#include "Shaders/VertexShader.h"
+#include "Shaders/PixelShader.h"
+#include "InputLayout.h"
+#include "Topology.h"
+
 //#pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "D3DCompiler.lib")
 
@@ -94,61 +101,31 @@ void Graphics::DrawTriangle(float angle, float x, float y)
 		unsigned char r, g, b;
 	};
 
-	const Vertex vertices[] =
+	const std::vector<Vertex> vertices =
 	{
 		{  0.0f,  0.5f,  255, 0, 0 },
 		{  0.5f, -0.5f,  0, 255, 0 },
 		{ -0.5f, -0.5f,  0, 0, 255 },
 	};
 
-	//Create VB
-	wrl::ComPtr<ID3D11Buffer> pVertexBuffer;
-	D3D11_BUFFER_DESC bd = {};
-	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.CPUAccessFlags = 0u;
-	bd.MiscFlags = 0u;
-	bd.ByteWidth = sizeof(vertices);
-	bd.StructureByteStride = sizeof(Vertex);
-
-	D3D11_SUBRESOURCE_DATA sd = {};
-	sd.pSysMem = vertices;
-	hr = pDevice->CreateBuffer(&bd, &sd, &pVertexBuffer);
-	if (FAILED(hr))
-	{
-		std::cerr << "CreateBuffer failed : " << hr << std::endl;
-	}
-
-	//Bind VB
-	const UINT stride = sizeof(Vertex);
-	const UINT offset = 0u;
-	pContext->IASetVertexBuffers(0u, 1u, pVertexBuffer.GetAddressOf(), &stride, &offset);
-
-	//Create IB
-	const unsigned short indices[] =
+	const std::vector<unsigned short> indices =
 	{
 		0, 1, 2
 	};
 
-	wrl::ComPtr<ID3D11Buffer> pIndexBuffer;
-	D3D11_BUFFER_DESC ibd = {};
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.Usage = D3D11_USAGE_DEFAULT;
-	ibd.CPUAccessFlags = 0u;
-	ibd.MiscFlags = 0u;
-	ibd.ByteWidth = sizeof(indices);
-	ibd.StructureByteStride = sizeof(unsigned short);
-
-	D3D11_SUBRESOURCE_DATA isd = {};
-	isd.pSysMem = indices;
-	hr = pDevice->CreateBuffer(&ibd, &isd, &pIndexBuffer);
-	if (FAILED(hr))
+	const std::vector<D3D11_INPUT_ELEMENT_DESC> ied =
 	{
-		std::cerr << "CreateBuffer failed : " << hr << std::endl;
-	}
+		{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 8u, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
 
-	//Bind IB
-	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
+	//Create VB
+	auto vb = std::make_unique<VertexBuffer>(*this, vertices);
+	vb->Bind(*this);
+
+	//Create IB
+	std::unique_ptr<IndexBuffer> ib = std::make_unique<IndexBuffer>(*this, indices);
+	ib->Bind(*this);
 
 	//Create Constant Buffer
 	struct ConstantBuffer
@@ -163,7 +140,6 @@ void Graphics::DrawTriangle(float angle, float x, float y)
 			dx::XMMatrixScaling(9.0f / 16.0f, 1.0f, 1.0f) *
 			dx::XMMatrixTranslation(x, y, 0.0f)
 		)
-		
 	};
 
 	wrl::ComPtr<ID3D11Buffer> pConstantBuffer;
@@ -186,51 +162,30 @@ void Graphics::DrawTriangle(float angle, float x, float y)
 	//Bind ConstantBuffer
 	pContext->VSSetConstantBuffers(0u, 1u, pConstantBuffer.GetAddressOf());
 
-	//Bind IB
-	pContext->IASetIndexBuffer(pIndexBuffer.Get(), DXGI_FORMAT_R16_UINT, 0u);
-	
-	//Create PS
-	wrl::ComPtr<ID3DBlob> pBlob;
-	wrl::ComPtr<ID3D11PixelShader> pPixelShader;
-	D3DReadFileToBlob(L"PixelShader.cso", &pBlob);
-	pDevice->CreatePixelShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pPixelShader);
 
-	//Bind PS
-	pContext->PSSetShader(pPixelShader.Get(), nullptr, 0u);
+
+
+
 
 	//Create VS
-	wrl::ComPtr<ID3D11VertexShader> pVertexShader;
-	D3DReadFileToBlob(L"VertexShader.cso", &pBlob);
-	pDevice->CreateVertexShader(pBlob->GetBufferPointer(), pBlob->GetBufferSize(), nullptr, &pVertexShader);
+	auto vs = std::make_unique<VertexShader>(*this, L"VertexShader.cso");
+	vs->Bind(*this);
 
-	//Bind VS
-	pContext->VSSetShader(pVertexShader.Get(), nullptr, 0u);
+	//Create PS
+	auto ps = std::make_unique<PixelShader>(*this, L"PixelShader.cso");
+	ps->Bind(*this);
 
-	//Input Layout
-	wrl::ComPtr<ID3D11InputLayout> layout;
-	const D3D11_INPUT_ELEMENT_DESC ied[] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 8u, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
-	pDevice->CreateInputLayout(
-		ied,
-		(UINT)std::size(ied),
-		pBlob->GetBufferPointer(),
-		pBlob->GetBufferSize(),
-		&layout
-	);
-
-	//Bind InputLayout
-	pContext->IASetInputLayout(layout.Get());
+	//Create Input Layout
+	auto layout = std::make_unique<InputLayout>(*this, ied, vs->GetBlob());
+	layout->Bind(*this);
 
 	//Bind RenderTarget
 	pContext->OMSetRenderTargets(1u, pTarget.GetAddressOf(), nullptr);
 
 	//Primiive topology
-	pContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	auto topology = std::make_unique<Topology>(*this, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	topology->Bind(*this);
 
 	//Draw
-	pContext->DrawIndexed((UINT)std::size(indices), 0u, 0u);
-	//pContext->Draw((UINT)std::size(vertices), 0u);
+	pContext->DrawIndexed((UINT)indices.size(), 0u, 0u);
 }
